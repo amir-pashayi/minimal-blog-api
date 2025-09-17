@@ -1,11 +1,17 @@
 from rest_framework import serializers
 from .models import Post
 from accounts.models import User
+from comments.models import Comment
 
 class PostSerializer(serializers.ModelSerializer):
+    comments_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
         exclude = ('user',)
+
+    def get_comments_count(self, obj):
+        return Comment.objects.filter(post=obj, is_approved=True).count()
 
     def create(self, validated_data):
         user = self.context['request'].user
