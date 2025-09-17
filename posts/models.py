@@ -16,10 +16,11 @@ class Post(models.Model):
     image = models.ImageField(upload_to='posts/%Y/%m/%d/')
     description = RichTextField()
     reading_time = models.PositiveSmallIntegerField(default=1)
+    categories = models.ManyToManyField('Category', related_name='posts')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     excerpt = models.CharField(max_length=300, blank=True, null=True)
 
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True ,related_name='userـposts')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True ,related_name='user_posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     views_count = models.PositiveIntegerField(default=0)
@@ -33,3 +34,24 @@ class Post(models.Model):
         verbose_name = 'Post'
         verbose_name_plural = 'Posts'
         ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Category(models.Model):
+    title = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True)
+    description = models.TextField()
+
+    class Meta:
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
