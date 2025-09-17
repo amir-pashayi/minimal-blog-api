@@ -1,4 +1,4 @@
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, ListAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
@@ -7,8 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Count, Q
 from .serializers import PostSerializer, AuthorPostsSerializer
-from .models import Post
+from .models import Post, PostLike
 from accounts.models import User
+from django.shortcuts import get_object_or_404
 
 
 class PostListCreateAPIView(ListCreateAPIView):
@@ -59,3 +60,26 @@ class AuthorPostsAPIView(APIView):
         }
         ser_data = AuthorPostsSerializer(instance=data)
         return Response(ser_data.data, status=status.HTTP_200_OK)
+
+
+class LikePostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, slug):
+        value = request.data.get('value')
+        if value not in ['like', 'dislike']:
+            return Response({'error': 'Invalid value'}, status=status.HTTP_400_BAD_REQUEST)
+
+        post = get_object_or_404(Post, slug=slug)
+
+        existing_like = PostLike.objects.filter(post=post, user=request.user).first()
+        if existing_like:
+            if existing_like.value == value:
+                return Response({'message': f'Already {value}d'}, status=status.HTTP_200_OK)
+            else:
+                existing_like.value = value
+                existing_like.save()
+                return Response({'message': f'Updated to {value}'}, status=status.HTTP_200_OK)
+        else:
+            PostLike.objects.create(post=post, user=request.user, value=value)
+            return Response({'message': f'{value.capitalize()} added'}, status=status.HTTP_201_CREATED)

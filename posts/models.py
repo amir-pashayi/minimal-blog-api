@@ -55,3 +55,24 @@ class Category(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PostLike(models.Model):
+    VALUE_CHOICES = [
+        ('like', 'Like'),
+        ('dislike', 'Dislike'),
+    ]
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    value = models.CharField(max_length=10, choices=VALUE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        verbose_name = 'PostLike'
+        verbose_name_plural = 'PostLikes'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'post'], name='unique_user_post_vote')
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.post.title} - {self.value}"
