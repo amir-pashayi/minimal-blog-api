@@ -43,3 +43,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name = "User"
         verbose_name_plural = "Users"
         ordering = ['-id']
+
+
+class Follow(models.Model):
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        verbose_name = "Follow"
+        verbose_name_plural = "Follows"
+        ordering = ['-created_at']
+        unique_together = ['from_user', 'to_user']
+
+    def __str__(self):
+        return f"{self.from_user.username} → {self.to_user.username}"

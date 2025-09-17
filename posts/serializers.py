@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Post, PostLike
-from accounts.models import User
+from accounts.models import User, Follow
 from comments.models import Comment
 
 class PostSerializer(serializers.ModelSerializer):
@@ -25,10 +25,14 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class AuthorSerializer(serializers.ModelSerializer):
+    followers_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ('full_name', 'age', 'bio', 'email')
 
+    def get_followers_count(self, obj):
+        return Follow.objects.filter(to_user=obj).count()
 
 class AuthorPostsSerializer(serializers.Serializer):
     posts = PostSerializer(many=True)

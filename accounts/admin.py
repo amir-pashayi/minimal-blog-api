@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
-from .models import User
+from .models import User, Follow
 
 
 @admin.register(User)
@@ -26,3 +26,11 @@ class UserAdmin(BaseUserAdmin):
     )
 
     filter_horizontal = ("groups", "user_permissions")
+
+
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('from_user', 'to_user', 'created_at')
+    list_filter = ('from_user', 'to_user', 'created_at')
+    search_fields = ('from_user__username', 'to_user__username')
+    ordering = ('-created_at',)
