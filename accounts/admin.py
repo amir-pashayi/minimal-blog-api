@@ -6,14 +6,14 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ("phone", "name", "last_name", "author", "is_active", "is_staff")
+    list_display = ("phone", "username", "full_name", "author", "is_active", "is_staff")
     list_filter = ("is_active", "is_staff", "author", "gender")
-    search_fields = ("phone", "name", "last_name", "email")
+    search_fields = ("phone", "username", "full_name", "email")
     ordering = ("-id",)
 
     fieldsets = (
         (None, {"fields": ("phone", "password")}),
-        ("Personal Info", {"fields": ("name", "last_name", "email", "bio", "age", "gender")}),
+        ("Personal Info", {"fields": ("username", "full_name", "email", "bio", "age", "gender")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "author", "groups", "user_permissions")}),
         ("Important Dates", {"fields": ("last_login",)}),
     )

@@ -18,8 +18,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             RegexValidator(regex=r'^09\d{9}$', message="شماره موبایل باید با 09 شروع شده و 11 رقم باشد.")
         ]
     )
-    name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, unique=True)
+    full_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     age = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(100)])
@@ -32,15 +32,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'phone'
-    REQUIRED_FIELDS = ['name', 'age']
+    REQUIRED_FIELDS = ['username', 'age']
 
 
     def __str__(self):
         return f"{self.phone} - {self.full_name or 'کاربر'}"
-
-    @property
-    def full_name(self):
-        return f"{self.name or ''} {self.last_name or ''}".strip() if self.name or self.last_name else "کاربر"
 
 
     class Meta:
