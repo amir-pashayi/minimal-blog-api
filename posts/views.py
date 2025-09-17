@@ -1,12 +1,14 @@
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import PostSerializer, AuthorPostsSerializer
 from .models import Post
 from accounts.models import User
+
 
 class PostListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -39,10 +41,15 @@ class AuthorPostsAPIView(APIView):
         except User.DoesNotExist:
             return Response('User Does Not Exists', status=status.HTTP_400_BAD_REQUEST)
         posts = Post.objects.filter(user__username=username, status='published')
+
         for backend in self.filter_backends:
             posts = backend().filter_queryset(request, posts, self)
+
+        paginator = PageNumberPagination()
+        paginated_posts = paginator.paginate_queryset(posts, request, view=self)
+
         data = {
-            'posts': posts,
+            'posts': paginated_posts,
             'author': author
         }
         ser_data = AuthorPostsSerializer(instance=data)
