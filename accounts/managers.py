@@ -13,6 +13,7 @@ class UserManager(BaseUserManager):
         else:
             user.set_unusable_password()
         user.save(using=self._db)
+        return user
 
     def create_superuser(self, phone, name, age, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
