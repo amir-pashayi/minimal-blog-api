@@ -1,4 +1,4 @@
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, CreateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
@@ -10,57 +10,69 @@ from .serializers import PostSerializer, AuthorPostsSerializer
 from .models import Post, PostLike
 from accounts.models import User
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .permissions import IsOwnerOrReadOnly
 
-
-class PostListCreateAPIView(ListCreateAPIView):
+class MyPostsListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        return Post.objects.annotate(
-            comments_count=Count('comment', filter=Q(comment__is_approved=True))
-        ).filter(user=self.request.user)
+        return (
+            Post.objects.filter(user=self.request.user)
+            .annotate(
+                comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+                likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
+            )
+            .select_related("user")
+        )
+
+class PostListCreateAPIView(ListCreateAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        qs = Post.objects.all()
+        qs = qs.annotate(
+            comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+            likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
+        ).select_related("user")
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 
 class PostDetailAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     serializer_class = PostSerializer
-    lookup_field = 'slug'
+    lookup_field = "slug"
 
     def get_queryset(self):
-        return Post.objects.filter(user=self.request.user)
+        return Post.objects.annotate(
+            comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+            likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
+        ).select_related("user")
 
-class AuthorPostsAPIView(APIView):
+class AuthorPostsAPIView(ListAPIView):
     permission_classes = [AllowAny]
+    serializer_class = PostSerializer
     filter_backends = (SearchFilter, OrderingFilter)
-    filterset_fields = ['updated_at']
-    search_fields = ['title', 'excerpt']
+    search_fields = ["title", "excerpt"]
+    ordering_fields = ["updated_at", "created_at", "comments_count", "likes_count"]
+    ordering = ["-updated_at"]
 
-    def get(self, request, username):
-        try:
-            author = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response('User Does Not Exists', status=status.HTTP_400_BAD_REQUEST)
-
-        posts = Post.objects.filter(user__username=username, status='published').annotate(
-            comments_count=Count('comment', filter=Q(comment__is_approved=True)))
-
-        for backend in self.filter_backends:
-            posts = backend().filter_queryset(request, posts, self)
-
-        paginator = PageNumberPagination()
-        paginated_posts = paginator.paginate_queryset(posts, request, view=self)
-
-        data = {
-            'posts': paginated_posts,
-            'author': author
-        }
-        ser_data = AuthorPostsSerializer(instance=data)
-        return Response(ser_data.data, status=status.HTTP_200_OK)
-
+    def get_queryset(self):
+        username = self.kwargs["username"]
+        get_object_or_404(User, username=username)
+        return (
+            Post.objects.filter(user__username=username, status="published")
+            .annotate(
+                comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+                likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
+            )
+            .select_related("user")
+        )
 
 class LikePostView(APIView):
     permission_classes = [IsAuthenticated]
@@ -70,7 +82,7 @@ class LikePostView(APIView):
         if value not in ['like', 'dislike']:
             return Response({'error': 'Invalid value'}, status=status.HTTP_400_BAD_REQUEST)
 
-        post = get_object_or_404(Post, slug=slug)
+        post = get_object_or_404(Post, slug=slug, status="published")
 
         existing_like = PostLike.objects.filter(post=post, user=request.user).first()
         if existing_like:
