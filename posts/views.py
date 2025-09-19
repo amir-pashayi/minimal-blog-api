@@ -32,7 +32,7 @@ class PostListCreateAPIView(ListCreateAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        qs = Post.objects.all()
+        qs = Post.objects.filter(status="published")
         qs = qs.annotate(
             comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
             likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
@@ -109,10 +109,11 @@ class CategoryPostsAPIView(ListAPIView):
         slug = self.kwargs["slug"]
         get_object_or_404(Category, slug=slug)
         return (
-            Post.objects.filter(category__slug=slug, status="published")
+            Post.objects.filter(categories__slug=slug, status="published")
             .annotate(
-                comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+                comments_count=Count("comments", filter=Q(comments__is_approved=True), distinct=True),
                 likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
             )
-            .select_related("user", "category")
+            .select_related("user")
+            .prefetch_related("categories")
         )
