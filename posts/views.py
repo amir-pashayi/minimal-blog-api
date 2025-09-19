@@ -12,6 +12,7 @@ from accounts.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .permissions import IsOwnerOrReadOnly
+from rest_framework.throttling import ScopedRateThrottle
 
 class MyPostsListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -76,6 +77,8 @@ class AuthorPostsAPIView(ListAPIView):
 
 class LikePostView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "like"
 
     def post(self, request, slug):
         value = request.data.get('value')

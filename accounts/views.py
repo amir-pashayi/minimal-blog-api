@@ -6,6 +6,14 @@ from .serializers import UserRegisterSerializer, FollowSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Follow, User
+from rest_framework.throttling import ScopedRateThrottle
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+
+class ThrottledTokenObtainPairView(TokenObtainPairView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
+
 
 class UserRegisterView(APIView):
     def post(self, request):
