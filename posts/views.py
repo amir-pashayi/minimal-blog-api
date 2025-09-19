@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Count, Q
 from .serializers import PostSerializer, AuthorPostsSerializer
-from .models import Post, PostLike
+from .models import Post, PostLike, Category
 from accounts.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -58,7 +58,7 @@ class AuthorPostsAPIView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = PostSerializer
     filter_backends = (SearchFilter, OrderingFilter)
-    search_fields = ["title", "excerpt"]
+    search_fields = ["title", "description"]
     ordering_fields = ["updated_at", "created_at", "comments_count", "likes_count"]
     ordering = ["-updated_at"]
 
@@ -95,3 +95,24 @@ class LikePostView(APIView):
         else:
             PostLike.objects.create(post=post, user=request.user, value=value)
             return Response({'message': f'{value.capitalize()} added'}, status=status.HTTP_201_CREATED)
+
+
+class CategoryPostsAPIView(ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = PostSerializer
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = ["title", "description"]
+    ordering_fields = ["updated_at", "created_at", "comments_count", "likes_count"]
+    ordering = ["-updated_at"]
+
+    def get_queryset(self):
+        slug = self.kwargs["slug"]
+        get_object_or_404(Category, slug=slug)
+        return (
+            Post.objects.filter(category__slug=slug, status="published")
+            .annotate(
+                comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+                likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
+            )
+            .select_related("user", "category")
+        )
