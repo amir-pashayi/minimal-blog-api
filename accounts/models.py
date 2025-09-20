@@ -68,3 +68,17 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Profile({self.user.username})"
+
+
+class UserBlock(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blocking")
+    blocked_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blocked_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "blocked_user"], name="unique_user_block")
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} blocked {self.blocked_user.username}"

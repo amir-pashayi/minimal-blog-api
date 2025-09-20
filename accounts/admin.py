@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import Group
-from .models import User, Follow, Profile
+from .models import User, Follow, Profile, UserBlock
 
 
 class ProfileInline(admin.StackedInline):
@@ -41,3 +40,10 @@ class FollowAdmin(admin.ModelAdmin):
     list_filter = ('from_user', 'to_user', 'created_at')
     search_fields = ('from_user__username', 'to_user__username')
     ordering = ('-created_at',)
+
+
+@admin.register(UserBlock)
+class UserBlockAdmin(admin.ModelAdmin):
+    list_display = ("user", "blocked_user", "created_at")
+    search_fields = ("user__username", "blocked_user__username")
+    ordering = ("-created_at",)

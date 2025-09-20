@@ -154,6 +154,7 @@ REST_FRAMEWORK = {
         "login": "5/min",
         "comment-create": "20/hour",
         "like": "60/hour",
+        "report": "30/hour",
     },
 
 }

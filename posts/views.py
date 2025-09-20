@@ -8,7 +8,7 @@ from rest_framework import status
 from django.db.models import Count, Q
 from .serializers import PostSerializer, AuthorPostsSerializer
 from .models import Post, PostLike, Category
-from accounts.models import User
+from accounts.models import User, UserBlock
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .permissions import IsOwnerOrReadOnly
@@ -86,6 +86,9 @@ class LikePostView(APIView):
             return Response({'error': 'Invalid value'}, status=status.HTTP_400_BAD_REQUEST)
 
         post = get_object_or_404(Post, slug=slug, status="published")
+
+        if UserBlock.objects.filter(user=post.user, blocked_user=request.user).exists() or UserBlock.objects.filter(user=request.user, blocked_user=post.user).exists():
+            return Response({"error": "You cannot interact with this user."}, status=403)
 
         existing_like = PostLike.objects.filter(post=post, user=request.user).first()
         if existing_like:

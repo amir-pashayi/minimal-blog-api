@@ -5,7 +5,7 @@ from rest_framework import status
 from .serializers import UserRegisterSerializer, FollowSerializer, ProfileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
-from .models import Follow, User, Profile
+from .models import Follow, User, Profile, UserBlock
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.generics import RetrieveUpdateAPIView, RetrieveAPIView
@@ -30,9 +30,14 @@ class UserFollow(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, username):
+
         ser_data = FollowSerializer(data=request.data)
         if ser_data.is_valid():
             to_user = get_object_or_404(User, username=username)
+
+            if UserBlock.objects.filter(user=to_user, blocked_user=request.user).exists() or UserBlock.objects.filter(user=request.user, blocked_user=to_user).exists():
+                return Response({"error": "Interaction not allowed"}, status=403)
+
             ser_data.save(from_user=request.user, to_user=to_user)
             return Response(ser_data.data, status=status.HTTP_201_CREATED)
         return Response(ser_data.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -64,3 +69,20 @@ class ProfileView(RetrieveAPIView):
     def get_object(self):
         username = self.kwargs[self.lookup_url_kwarg]
         return get_object_or_404(Profile, user__username=username)
+
+
+
+class BlockUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, username):
+        target = get_object_or_404(User, username=username)
+        if target == request.user:
+            return Response({"error": "Cannot block yourself"}, status=status.HTTP_400_BAD_REQUEST)
+        UserBlock.objects.get_or_create(user=request.user, blocked_user=target)
+        return Response({"message": f"Blocked {username}"}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, username):
+        target = get_object_or_404(User, username=username)
+        UserBlock.objects.filter(user=request.user, blocked_user=target).delete()
+        return Response({"message": f"Unblocked {username}"}, status=status.HTTP_200_OK)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Comment
+from .models import Comment, CommentReport
 
 
 class RecursiveField(serializers.Serializer):
@@ -29,3 +29,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_comment_author(self, obj):
         return obj.user.full_name or obj.user.username
+
+class CommentReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReport
+        fields = ["reason"]
