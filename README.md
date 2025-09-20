@@ -74,8 +74,8 @@ python manage.py runserver
 
 After running the server:
 
-- Swagger UI → [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/schema/swagger-ui/)
-- Redoc → [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/schema/redoc/)
+- Swagger UI → [http://127.0.0.1:8000/api/schema/swagger-ui/](http://127.0.0.1:8000/api/schema/swagger-ui/)
+- Redoc → [http://127.0.0.1:8000/api/schema/redoc/](http://127.0.0.1:8000/api/schema/redoc/)
 
 OpenAPI schema files are also available:
 - `docs/openapi.json`
