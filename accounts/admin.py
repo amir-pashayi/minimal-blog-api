@@ -1,7 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
-from .models import User, Follow
+from .models import User, Follow, Profile
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    extra = 0
 
 
 @admin.register(User)
@@ -26,6 +32,7 @@ class UserAdmin(BaseUserAdmin):
     )
 
     filter_horizontal = ("groups", "user_permissions")
+    inlines = [ProfileInline]
 
 
 @admin.register(Follow)

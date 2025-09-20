@@ -19,7 +19,6 @@ class Post(models.Model):
     categories = models.ManyToManyField('Category', related_name='posts')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     excerpt = models.CharField(max_length=300, blank=True, null=True)
-
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True ,related_name='user_posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

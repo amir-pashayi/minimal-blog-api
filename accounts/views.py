@@ -2,12 +2,14 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserRegisterSerializer, FollowSerializer
-from rest_framework.permissions import IsAuthenticated
+from .serializers import UserRegisterSerializer, FollowSerializer, ProfileSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
-from .models import Follow, User
+from .models import Follow, User, Profile
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.generics import RetrieveUpdateAPIView, RetrieveAPIView
+
 
 
 class ThrottledTokenObtainPairView(TokenObtainPairView):
@@ -42,3 +44,23 @@ class UserFollow(APIView):
             return Response({'error': 'Not following this user'}, status=status.HTTP_400_BAD_REQUEST)
         follow.delete()
         return Response({'message': 'Unfollowed successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class MyProfileView(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get_object(self):
+        return self.request.user.profile
+
+
+class ProfileView(RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProfileSerializer
+
+    lookup_field = "user__username"
+    lookup_url_kwarg = "username"
+
+    def get_object(self):
+        username = self.kwargs[self.lookup_url_kwarg]
+        return get_object_or_404(Profile, user__username=username)

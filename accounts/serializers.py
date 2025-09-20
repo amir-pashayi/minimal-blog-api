@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Follow
+from .models import User, Follow, Profile
 import re
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -23,3 +23,9 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = '__all__'
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["bio", "avatar", "location", "website"]
