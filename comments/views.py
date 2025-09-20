@@ -10,7 +10,25 @@ from rest_framework.exceptions import PermissionDenied
 from . serializers import CommentReportSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import extend_schema, OpenApiExample
 
+
+@extend_schema(
+    summary="Create comment",
+    tags=["comments"],
+    examples=[
+        OpenApiExample(
+            "Create comment",
+            request_only=True,
+            value={"content": "Nice post!"},
+        ),
+        OpenApiExample(
+            "Created",
+            response_only=True,
+            value={"id": 123, "content": "Nice post!", "is_approved": False},
+        ),
+    ],
+)
 class CommentView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     throttle_classes = [ScopedRateThrottle]
