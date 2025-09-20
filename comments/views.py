@@ -7,10 +7,11 @@ from .models import Comment, CommentReport
 from posts.models import Post
 from accounts.models import UserBlock
 from rest_framework.exceptions import PermissionDenied
-from . serializers import CommentReportSerializer
+from . serializers import CommentReportSerializer, CommentSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 
 @extend_schema(
@@ -33,6 +34,8 @@ class CommentView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "comment-create"
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.none()
 
     def get_queryset(self):
         post_slug = self.kwargs.get('post_slug')
@@ -49,6 +52,12 @@ class CommentView(ListCreateAPIView):
         serializer.save(user=self.request.user, post=post, is_approved=False)
 
 
+@extend_schema(
+    summary="Report a comment",
+    tags=["moderation"],
+    request=CommentReportSerializer,
+    responses={201: OpenApiTypes.OBJECT, 200: OpenApiTypes.OBJECT, 404: OpenApiTypes.OBJECT},
+)
 class ReportCommentView(APIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [ScopedRateThrottle]

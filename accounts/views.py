@@ -10,6 +10,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.generics import RetrieveUpdateAPIView, RetrieveAPIView
 from drf_spectacular.utils import extend_schema, OpenApiExample, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
 
 
 
@@ -38,40 +39,9 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
 
 @extend_schema(
     summary="Register a new user",
-    description="Create a new user account using phone, username, password and other optional fields.",
     tags=["auth"],
-    request=OpenApiExample(
-        "Register body",
-        value={
-            "phone": "09120000000",
-            "username": "alice",
-            "full_name": "Alice Example",
-            "password": "Passw0rd!",
-            "age": 25,
-            "gender": "female",
-            "email": "alice@example.com"
-        },
-    ),
-    responses={
-        201: OpenApiExample(
-            "User created",
-            value={
-                "phone": "09120000000",
-                "username": "alice",
-                "full_name": "Alice Example",
-                "age": 25,
-                "gender": "female",
-                "email": "alice@example.com",
-                "bio": None,
-            },
-            response_only=True,
-        ),
-        400: OpenApiExample(
-            "Validation error",
-            value={"phone": ["شماره موبایل نامعتبر است."]},
-            response_only=True,
-        ),
-    },
+    request=UserRegisterSerializer,
+    responses={201: UserRegisterSerializer, 400: OpenApiTypes.OBJECT},
 )
 class UserRegisterView(APIView):
     def post(self, request):
@@ -156,22 +126,16 @@ class ProfileView(RetrieveAPIView):
     post=extend_schema(
         summary="Block a user",
         tags=["moderation"],
-        responses={
-            201: OpenApiExample("Blocked", value={"message": "Blocked bob"}, response_only=True),
-            400: OpenApiExample("Invalid", value={"error": "Cannot block yourself"}, response_only=True),
-            404: None,
-        },
+        request=None,
+        responses={201: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT, 404: OpenApiTypes.OBJECT},
     ),
     delete=extend_schema(
         summary="Unblock a user",
         tags=["moderation"],
-        responses={
-            200: OpenApiExample("Unblocked", value={"message": "Unblocked bob"}, response_only=True),
-            404: None,
-        },
+        request=None,
+        responses={200: OpenApiTypes.OBJECT, 404: OpenApiTypes.OBJECT},
     ),
 )
-
 class BlockUserView(APIView):
     permission_classes = [IsAuthenticated]
 

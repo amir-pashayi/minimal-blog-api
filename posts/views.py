@@ -14,18 +14,22 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.throttling import ScopedRateThrottle
 from drf_spectacular.utils import extend_schema, OpenApiExample, extend_schema_view
+from drf_spectacular.utils import inline_serializer, extend_schema
+from drf_spectacular.types import OpenApiTypes
+from rest_framework import serializers
 
 
 
 class MyPostsListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PostSerializer
+    queryset = Post.objects.none()
 
     def get_queryset(self):
         return (
             Post.objects.filter(user=self.request.user)
             .annotate(
-                comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+                comments_count=Count("comments", filter=Q(comments__is_approved=True), distinct=True),
                 likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
             )
             .select_related("user")
@@ -38,47 +42,23 @@ class MyPostsListAPIView(ListAPIView):
         summary="List published posts (public)",
         tags=["posts"],
         responses={200: PostSerializer(many=True)},
-        examples=[
-            OpenApiExample(
-                "List posts",
-                description="Supports pagination & may include search/ordering filters if enabled.",
-                request_only=True,
-                value=None,
-            ),
-        ],
     ),
     post=extend_schema(
-        summary="Create a post (requires auth)",
+        summary="Create a post (auth)",
         tags=["posts"],
         request=PostSerializer,
-        responses={
-            201: PostSerializer,
-            400: OpenApiExample("Bad Request", value={"detail": "validation error"}, response_only=True),
-        },
-        examples=[
-            OpenApiExample(
-                "Create post body",
-                request_only=True,
-                value={
-                    "title": "My first post",
-                    "description": "<p>Hello world</p>",
-                    "status": "draft",
-                    "reading_time": 3,
-                    "categories": [1, 2],
-                    "image": "binary file"
-                },
-            ),
-        ],
+        responses={201: PostSerializer, 400: OpenApiTypes.OBJECT},
     ),
 )
 class PostListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = PostSerializer
+    queryset = Post.objects.none()
 
     def get_queryset(self):
         qs = Post.objects.filter(status="published")
         qs = qs.annotate(
-            comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+            comments_count=Count("comments", filter=Q(comments__is_approved=True), distinct=True),
             likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
         ).select_related("user")
         return qs
@@ -91,10 +71,11 @@ class PostDetailAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     serializer_class = PostSerializer
     lookup_field = "slug"
+    queryset = Post.objects.none()
 
     def get_queryset(self):
         return Post.objects.annotate(
-            comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+            comments_count=Count("comments", filter=Q(comments__is_approved=True), distinct=True),
             likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
         ).select_related("user")
 
@@ -127,7 +108,7 @@ class AuthorPostsAPIView(ListAPIView):
         return (
             Post.objects.filter(user__username=username, status="published")
             .annotate(
-                comments_count=Count("comment", filter=Q(comment__is_approved=True), distinct=True),
+                comments_count=Count("comments", filter=Q(comments__is_approved=True), distinct=True),
                 likes_count=Count("postlike", filter=Q(postlike__value="like"), distinct=True),
             )
             .select_related("user")
@@ -135,20 +116,13 @@ class AuthorPostsAPIView(ListAPIView):
 
 
 @extend_schema(
-    summary="Like/Dislike a post (requires auth)",
+    summary="Like/Dislike a post (auth)",
     tags=["posts"],
-    request=OpenApiExample(
-        "Like/Dislike body",
-        value={"value": "like"},
-        description="value must be 'like' or 'dislike'",
+    request=inline_serializer(
+        name="LikeBody",
+        fields={"value": serializers.ChoiceField(choices=["like", "dislike"])}
     ),
-    responses={
-        201: OpenApiExample("Created", value={"message": "Like added"}, response_only=True),
-        200: OpenApiExample("Updated/Already", value={"message": "Already liked"}, response_only=True),
-        400: OpenApiExample("Invalid", value={"error": "Invalid value"}, response_only=True),
-        403: OpenApiExample("Blocked", value={"error": "You cannot interact with this user."}, response_only=True),
-        404: None,
-    },
+    responses={200: OpenApiTypes.OBJECT, 201: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT, 403: OpenApiTypes.OBJECT, 404: OpenApiTypes.OBJECT},
 )
 class LikePostView(APIView):
     permission_classes = [IsAuthenticated]
