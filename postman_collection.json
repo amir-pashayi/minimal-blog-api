@@ -1,0 +1,528 @@
+{
+  "info": {
+    "name": "Minimal Blog API",
+    "_postman_id": "d1758354202",
+    "description": "Postman collection for Minimal Blog API (JWT auth via phone + password). Adjust any paths as needed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts/register/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "register",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"09120000000\",\n  \"username\": \"alice\",\n  \"full_name\": \"Alice Example\",\n  \"password\": \"Passw0rd!\",\n  \"age\": 25,\n  \"gender\": \"female\",\n  \"email\": \"alice@example.com\"\n}"
+            },
+            "description": "Create a new user"
+          }
+        },
+        {
+          "name": "Login (JWT) — /accounts/token/",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "token",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"09120000000\",\n  \"password\": \"Passw0rd!\"\n}"
+            },
+            "description": "Obtain JWT access/refresh using phone & password"
+          }
+        },
+        {
+          "name": "Login (JWT) — /api/token/ (alt)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "token",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"09120000000\",\n  \"password\": \"Passw0rd!\"\n}"
+            },
+            "description": "Alternate token endpoint if mapped under /api/token/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/accounts/me/profile/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "me",
+                "profile",
+                ""
+              ]
+            },
+            "description": "Retrieve my profile (requires Bearer token)"
+          }
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts/me/profile/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "me",
+                "profile",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Backend developer\",\n  \"location\": \"Tehran, Iran\",\n  \"website\": \"https://example.com\"\n}"
+            },
+            "description": "Update my profile (bio, location, website). Use PATCH if you prefer."
+          }
+        },
+        {
+          "name": "Public profile by username",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/accounts/users/{{username}}/profile/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "users",
+                "{{username}}",
+                "profile",
+                ""
+              ]
+            },
+            "description": "Public profile (no auth)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Follow",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/accounts/users/{{username}}/follow/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "users",
+                "{{username}}",
+                "follow",
+                ""
+              ]
+            },
+            "description": "Follow user by username"
+          }
+        },
+        {
+          "name": "Unfollow",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/accounts/users/{{username}}/follow/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "users",
+                "{{username}}",
+                "follow",
+                ""
+              ]
+            },
+            "description": "Unfollow user by username"
+          }
+        },
+        {
+          "name": "Block user",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/accounts/users/{{username}}/block/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "users",
+                "{{username}}",
+                "block",
+                ""
+              ]
+            },
+            "description": "Block user"
+          }
+        },
+        {
+          "name": "Unblock user",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/accounts/users/{{username}}/block/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts",
+                "users",
+                "{{username}}",
+                "block",
+                ""
+              ]
+            },
+            "description": "Unblock user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "List published posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/posts/?page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create post (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/posts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "My first post",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "<p>Hello world</p>",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "type": "text"
+                },
+                {
+                  "key": "reading_time",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "categories",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "description": "If you prefer JSON, remove image or send as base64 in a custom field the API supports."
+          }
+        },
+        {
+          "name": "Post detail by slug",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/posts/{{slug}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                "{{slug}}",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/posts/{{slug}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                "{{slug}}",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated title\",\n  \"description\": \"<p>Updated content</p>\",\n  \"status\": \"draft\",\n  \"reading_time\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete post",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/posts/{{slug}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                "{{slug}}",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Author's posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/posts/author/{{username}}/?ordering=-updated_at",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                "author",
+                "{{username}}",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "ordering",
+                  "value": "-updated_at"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Category posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/posts/category/{{category_slug}}/?ordering=-updated_at",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                "category",
+                "{{category_slug}}",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "ordering",
+                  "value": "-updated_at"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Like/Dislike post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/posts/{{slug}}/like/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "posts",
+                "{{slug}}",
+                "like",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"like\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Report comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}/report/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                "{{comment_id}}",
+                "report",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"spam\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
