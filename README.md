@@ -113,4 +113,4 @@ minimal-blog-api/
 
 ## ❤️ Credits
 
-Developed with ❤️ by **Amir Pashayi**
+Developed with ❤️ and ☕ by **Amir Pashayi**
